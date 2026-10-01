@@ -17,6 +17,7 @@ The website showcases the company’s services, portfolio, and contact informati
 * ✅ Contact section with direct WhatsApp integration
 * ✅ Social media integration
 * ✅ Clean navigation and user-friendly layout
+* ✅ Supabase-powered admin panel for site content
 
 ---
 
@@ -38,6 +39,7 @@ The company focuses on delivering **high-quality, innovative, and sustainable bu
 * **HTML5** – Structure of the website
 * **CSS3** – Styling and layout
 * **JavaScript** – Interactivity (slider, navigation, etc.)
+* **Supabase** – Content database, storage, and admin authentication
 * **Font Awesome** – Icons
 * **Google Fonts (Poppins)** – Typography
 
@@ -46,11 +48,19 @@ The company focuses on delivering **high-quality, innovative, and sustainable bu
 ## 📁 Project Structure
 
 ```
-├── index.html       # Main website file
-├── style.css        # Styling
-├── script.js        # JavaScript functionality
-├── images/          # Images (banners, projects, logo)
-└── README.md        # Project documentation
+├── index.html                # Main website
+├── style.css                 # Website styling
+├── script.js                 # Website interactions
+├── admin.html                # Content management panel
+├── admin.css                 # Admin panel styling
+├── admin.js                  # Admin panel logic
+├── js/                       # Supabase config, API, and dynamic content
+├── supabase/                 # Database schema and security migration
+├── banner1-3.jpg             # Hero images
+├── project1-6.jpg            # Portfolio images
+├── logo.jpg                  # Company logo
+├── SETUP.md                  # Supabase and deployment setup
+└── README.md                 # Project documentation
 ```
 
 ---
