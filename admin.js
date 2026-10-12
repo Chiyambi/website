@@ -426,30 +426,45 @@ function previewMedia(input, previewId) {
 }
 
 // ---------- User Management ----------
-function getAdminClient() {
-  return supabaseAdminClient;
+async function userManagementRequest(method, payload) {
+  const session = await API.getSession();
+  if (!session?.access_token) throw new Error('Your session has expired. Please sign in again.');
+  const response = await fetch('/api/users', {
+    method,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      ...(payload ? { 'Content-Type': 'application/json' } : {})
+    },
+    ...(payload ? { body: JSON.stringify(payload) } : {})
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Request failed (${response.status}).`);
+  return result;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
 }
 
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = '<p style="color:var(--text-muted)">Loading...</p>';
   try {
-    const client = getAdminClient();
-    if (!client) throw new Error('User management requires a secure server-side endpoint.');
-    const { data, error } = await client.auth.admin.listUsers();
-    if (error) throw error;
-    if (data.users.length === 0) {
+    const { users } = await userManagementRequest('GET');
+    if (users.length === 0) {
       list.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No users yet.</p></div>';
       return;
     }
-    list.innerHTML = data.users.map(u => `
+    list.innerHTML = users.map(u => `
       <div class="item-card">
         <div class="item-card-info">
-          <h4>${u.email}</h4>
-          <p>Role: ${u.role} | Created: ${new Date(u.created_at).toLocaleDateString()}</p>
+          <h4>${escapeHtml(u.email)}</h4>
+          <p>Role: ${escapeHtml(u.role)} | Created: ${escapeHtml(new Date(u.created_at).toLocaleDateString())}</p>
         </div>
         <div class="item-card-actions">
-          <button onclick="deleteUser('${u.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+          <button onclick="deleteUser('${escapeHtml(u.id)}')" title="Delete"><i class="fas fa-trash"></i></button>
         </div>
       </div>
     `).join('');
@@ -466,11 +481,8 @@ async function addUser() {
     return;
   }
   try {
-    const client = getAdminClient();
-    if (!client) throw new Error('User management requires a secure server-side endpoint.');
-    const { data, error } = await client.auth.admin.createUser({ email, password });
-    if (error) throw error;
-    showToast('User created: ' + data.user.email, 'success');
+    const { user } = await userManagementRequest('POST', { email, password });
+    showToast('User created: ' + user.email, 'success');
     document.getElementById('new-user-email').value = '';
     document.getElementById('new-user-password').value = '';
     loadUsers();
@@ -482,10 +494,7 @@ async function addUser() {
 async function deleteUser(id) {
   if (!confirm('Delete this user?')) return;
   try {
-    const client = getAdminClient();
-    if (!client) throw new Error('User management requires a secure server-side endpoint.');
-    const { error } = await client.auth.admin.deleteUser(id);
-    if (error) throw error;
+    await userManagementRequest('DELETE', { id });
     showToast('User deleted', 'success');
     loadUsers();
   } catch (err) {

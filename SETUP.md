@@ -135,7 +135,12 @@ vercel
 - The service-role key must never be placed in browser code. It bypasses row-level security.
 - The previously exposed service-role key must be rotated in Supabase immediately. Keep only the anon/public key in `js/config.js`.
 - Content and storage writes require `app_metadata.role = 'admin'`; ordinary authenticated users cannot manage site content.
-- Auth user creation, listing, and deletion require a secure server-side endpoint. Until one is configured, manage admin accounts in the Supabase dashboard; the admin panel's Users tab is unavailable.
+- Auth user creation, listing, and deletion run through `api/users.js`. On Vercel, add these environment variables under **Project Settings → Environment Variables**, then redeploy:
+  - `SUPABASE_URL`: the same project URL used in `js/config.js`
+  - `SUPABASE_ANON_KEY`: the project's anon/public key
+  - `SUPABASE_SERVICE_ROLE_KEY`: the project's service-role/secret key (server-side only; never put this in browser files)
+- The endpoint verifies the caller's Supabase session and requires `app_metadata.role = 'admin'` for every operation. Newly created accounts are email-confirmed and can sign in immediately. Assign the admin claim separately in Supabase only when you intend to grant admin access.
+- The Users tab requires a deployment platform that runs the `/api/users` serverless function. Opening the HTML directly from disk or using static-only hosting will not run this endpoint.
 
 ---
 
